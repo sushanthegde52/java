@@ -1,0 +1,40 @@
+@PutMapping("/{productId}")
+public ResponseEntity<?> updateProduct(@PathVariable Long productId,
+                                       @Valid @RequestBody Product updatedProduct,
+                                       BindingResult result) {
+    List<String> displayErrors = new ArrayList<>();
+
+    // Check if the product with the given ID exists
+    Product existingProduct = findProductById(productId);
+    if (existingProduct == null) {
+        displayErrors.add("Product with ID " + productId + " not found.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(displayErrors);
+    }
+
+    if (result.hasErrors()) {
+        List<FieldError> errors = result.getFieldErrors();
+        for (FieldError err : errors) {
+            displayErrors.add(err.getField() + ": " + err.getDefaultMessage());
+            System.out.println(displayErrors);
+        }
+        return ResponseEntity.badRequest().body(displayErrors);
+    }
+
+    // Update the existing product with the new data
+    existingProduct.setName(updatedProduct.getName());
+    existingProduct.setPrice(updatedProduct.getPrice());
+    // Add more fields as needed
+
+    return ResponseEntity.ok(existingProduct);
+}
+
+// Helper method to find a product by ID
+private Product findProductById(Long productId) {
+    for (Product product : products) {
+        if (product.getId().equals(productId)) {
+            return product;
+        }
+    }
+    return null;
+}
+
